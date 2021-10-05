@@ -1382,6 +1382,27 @@ group('chokidar', (beforeEach, test, group) => {
 			});
 		};
 
+		test('runs with previousFailures reset when run all is triggered', t => {
+			t.plan(2);
+
+			seed((_, filesAbsolute) => {
+				runStatusEmitter.emit('stateChange', {
+					type: 'uncaught-exception',
+					testFile: filesAbsolute[0],
+				});
+			});
+			let other = "random-unknown.ts";
+			return rerun(other, path.resolve(other)).then(() => {
+				t.ok(api.run.calledTwice);
+				t.strictSame(api.run.secondCall.args, [{files: [], filter: [], runtimeOptions: {
+					...defaultApiOptions,
+					previousFailures: 0,
+					clearLogOnNextRun: true,
+					runVector: 2,
+				}}]);
+			});
+		});
+
 		test('runs with previousFailures set to number of prevous failures', t => {
 			t.plan(2);
 
